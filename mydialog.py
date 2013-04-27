@@ -49,8 +49,8 @@ class Dialog(Toplevel):
       okButton.pack(side = LEFT, padx = 5, pady = 5)
       cancelButton.pack(side = LEFT, padx = 5, pady = 5)
 
-      self.bind("&lt;Return>", self.ok)          # add functionality for ENTER
-      self.bind("&lt;Escape>", self.cancel)      # and ESCAPE keys
+      self.bind("<Return>", self.ok)          # add functionality for ENTER
+      self.bind("<Escape>", self.cancel)      # and ESCAPE keys
 
       box.pack()
    #  ~buttonbox
