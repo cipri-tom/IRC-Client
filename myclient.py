@@ -9,6 +9,7 @@ from ex3utils import Client
 from Tkinter import *
 import tkMessageBox
 import mydialog
+import tkFont
 
 import time
 
@@ -18,7 +19,9 @@ class InitialDialog(mydialog.Dialog):
       Label(master, text = "Port:").grid(row = 1, sticky = W)
       Label(master, text = "User name:").grid(row = 2, sticky = W)
 
-      self._error    = Label(master).grid(row = 3, columnspan = 2, sticky = W)
+      self._error = StringVar()
+      Label(master, text = "Please fill all the fields", textvariable = \
+            self._error).grid(row = 3, sticky = EW, columnspan = 2)
       self._server   = Entry(master)
       self._port     = Entry(master)
       self._username = Entry(master)
@@ -34,9 +37,12 @@ class InitialDialog(mydialog.Dialog):
       return self._username          # this will have initial focus
 
    def validate(self):
+      if not self._username.get() or not self._server.get() or not self._port.get():
+         self._error.set("Please fill all fields")
+         return False
       illegalChars = [' ', ':', ',', ';']
       if any(char in self._username.get() for char in illegalChars):
-         #self._error["text"] = "Illegal characters in username"
+         self._error.set("Illegal characters in username")
          return False
       return True
 
@@ -53,7 +59,7 @@ class ClientGUI(Client):
       master.resizable(0, 0)
 
       frame = Frame(master, height = 576, width = 768)
-      frame.pack()
+      frame.grid()
 
       result = InitialDialog(master, "Connection settings").result
       if not result:
@@ -61,8 +67,48 @@ class ClientGUI(Client):
          return
 
       self.started = True
-      self.start(ip, port)
+      self.start(result[0], result[1])
+      self.name = result[2]
+
       master.protocol("WM_DELETE_WINDOW", self.onExit)
+
+      # add a menu
+      menu = Menu(master)
+      master.config(menu = menu)
+
+      filemenu = Menu(menu)
+      menu.add_cascade(label = "File", menu = filemenu)
+      filemenu.add_command(label = "Change your username", command = self.changeName)
+      filemenu.add_separator()
+      filemenu.add_command(label = "Quit", command = self.onExit)
+      menu.add_command(label = "About", command = self.aboutBox)
+
+      # use a menu entry as an information bar
+      menu.add_command(label = "               ", state = DISABLED, columnbreak = 5)
+      menu.add_command(label = "Connected to %s:%s as %s" % (result[0], result[1], self.name),\
+                       state = DISABLED, background = "gray", foreground = "red",\
+                       font = tkFont.Font(family = "Times", weight = tkFont.BOLD, \
+                       size = 10))
+      menu.config(disabledforeground = "#777")
+      self.menu = menu
+
+      # frame for connected users
+      self.userList = Listbox(master)
+      self.userList.insert(END, "defaultUser")
+      self.userList.insert(END, self.name)
+      self.userList.grid(row = 0, column = 0)
+      self.userList.bind('<<ListboxSelect>>', self.onSelect)
+
+   def onSelect(self, event):
+      for property, value in vars(event).iteritems():
+         print property, ": ", value
+
+   def aboutBox(self):
+      pass
+
+   def changeName(self):
+      pass
+
 
    def onMessage(self, socket, message):
       # *** process incoming messages here ***
@@ -74,16 +120,14 @@ class ClientGUI(Client):
          self.parent.destroy()
          if self.started: self.stop()
 
+try:
+   root = Tk()
+   client = ClientGUI(root)
+   root.mainloop()
+except:
+   root.destroy()
+   raise
 
-
-# Parse the IP address and port you wish to connect to.
-# ip = sys.argv[1]
-# port = int(sys.argv[2])
-#screenName = sys.argv[3]
-
-root = Tk()
-client = ClientGUI(root)
-root.mainloop()
 
 """
 # Create an IRC client.
