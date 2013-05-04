@@ -60,7 +60,6 @@ class ClientGUI(Client):
       master.resizable(0, 0)
 
       frame = Frame(master, height = 576, width = 768)
-      frame.grid()
 
       result = InitialDialog(master, "Connection settings").result
       if not result:
@@ -94,18 +93,28 @@ class ClientGUI(Client):
       self.menu = menu
 
       # frame for connected users
-      self.userList = Listbox(master)
-      self.userList.grid(row = 0, column = 1, sticky = "NEWS")
-      self.userList.bind('<<ListboxSelect>>', self.onSelect)
+      self.userList = Listbox(master, height = 15)
+      self.userList.bind('<<ListboxSelect>>', self.onListSelect)
       self.userList.insert(END, "defaultUser")
       self.userList.insert(END, self.name)
 
-      #add the text display
-      text = ScrolledText(master, state = DISABLED)
-      text.insert
-      text.grid(row = 0, column = 0, sticky = "NEWS")
+      # add the text display
+      text = ScrolledText(master, height = 20, state = DISABLED)
+      self.display = text
 
-   def onSelect(self, event):
+
+      # add the text input
+      text = ScrolledText(master, height = 3)
+      self.input = text
+
+      frame.grid_propagate(0)          # disable geometry propagation
+      self.display.grid(row = 0, column = 0, sticky = N)
+      self.input.grid(row = 1, column = 0)
+      self.userList.grid(row = 0, column = 1, sticky = N)
+      # frame.grid()
+
+
+   def onListSelect(self, event):
       for property, value in vars(event).iteritems():
          print property, ": ", value
 
