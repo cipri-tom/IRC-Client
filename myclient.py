@@ -129,7 +129,8 @@ class ClientGUI(Client):
 
    def sendMessage(self, event):
       message = self.input.get("1.0", END).strip()
-      self.send("MSG :" + message)
+      if message:                            # don't send empty messages
+         self.send("MSG :" + message)
       self.input.delete("1.0", END)
 
    def populateList(self):
