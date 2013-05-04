@@ -57,9 +57,10 @@ class ClientGUI(Client):
       Client.__init__(self)
       self.started = False          # use it to not try stopping if didn't start
       self.parent = master          # used to distroy it on exit
+      master.title("TomIRC")        # app's title
       master.resizable(0, 0)        # user cannot resize it
-      master.config(width = 720, height = 526)
-      master.grid_propagate(False)  # doesn't change size because of inner elements
+      # master.config(width = 720, height = 526)
+      # master.grid_propagate(False)  # doesn't change size because of inner elements
 
 
       result = InitialDialog(master, "Connection settings").result
@@ -160,7 +161,6 @@ class ClientGUI(Client):
       ##### Trust the server for now
 
       (command, sep, args) = message.partition(' ')
-      print command, args
 
       if command == "MSG":                            # show the message
          (author, sep, msg) = args.partition(':')     # get the author, msg
@@ -174,6 +174,11 @@ class ClientGUI(Client):
          self.display.insert(END, author + ":", tag)
          self.display.insert(END, ' ' + msg + '\n')
          self.display["state"] = DISABLED
+
+         pos = self.display.vbar.get()[1]
+         if pos == 1.0:
+            self.display.yview(END)
+
 
       elif command == "USR":                          # update users list
          self.connectedUsers.set(args)
