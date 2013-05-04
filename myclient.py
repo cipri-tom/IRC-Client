@@ -55,11 +55,12 @@ class InitialDialog(mydialog.Dialog):
 class ClientGUI(Client):
    def __init__(self, master):
       Client.__init__(self)
-      self.started = False
-      self.parent = master
-      master.resizable(0, 0)
+      self.started = False          # use it to not try stopping if didn't start
+      self.parent = master          # used to distroy it on exit
+      master.resizable(0, 0)        # user cannot resize it
+      master.config(width = 720, height = 526)
+      master.grid_propagate(False)  # doesn't change size because of inner elements
 
-      frame = Frame(master, height = 576, width = 768)
 
       result = InitialDialog(master, "Connection settings").result
       if not result:
@@ -84,39 +85,50 @@ class ClientGUI(Client):
       menu.add_command(label = "About", command = self.aboutBox)
 
       # use a menu entry as an information bar
-      menu.add_command(label = "               ", state = DISABLED, columnbreak = 5)
-      menu.add_command(label = "Connected to %s:%s as %s" % (result[0], result[1], self.name),\
-                       state = DISABLED, background = "gray", foreground = "red",\
+      menu.add_command(label = "               ", state = DISABLED)
+      menu.add_command(label = "Connected to %s:%s as %s" % (result[0], result[1],\
+                       self.name), state = DISABLED, background = "gray", \
+                       font = tkFont.Font(family = "Times", weight = tkFont.BOLD,\
+                              size = 10))
+      menu.add_command(label = "                                         ",\
+                       state = DISABLED)
+      menu.add_command(label = "Connected users                     ",\
+                       state = DISABLED, background = "gray", \
                        font = tkFont.Font(family = "Times", weight = tkFont.BOLD, \
-                       size = 10))
+                                          size = 10))
       menu.config(disabledforeground = "#777")
       self.menu = menu
 
-      # frame for connected users
-      self.userList = Listbox(master, height = 15)
+      # list of connected users
+      self.userList = Listbox(master, height = 15, width = 21, selectmode = MULTIPLE)
       self.userList.bind('<<ListboxSelect>>', self.onListSelect)
       self.userList.insert(END, "defaultUser")
       self.userList.insert(END, self.name)
 
-      # add the text display
-      text = ScrolledText(master, height = 20, state = DISABLED)
+      # add widget for displaying incoming text
+      text = ScrolledText(master, height = 20, width = 75, state = DISABLED)
       self.display = text
 
-
       # add the text input
-      text = ScrolledText(master, height = 3)
+      text = ScrolledText(master, height = 5, width = 75)
+      text.bind('<KeyRelease-Return>', self.sendMessage)
       self.input = text
 
-      frame.grid_propagate(0)          # disable geometry propagation
+      # add a button for
+
       self.display.grid(row = 0, column = 0, sticky = N)
       self.input.grid(row = 1, column = 0)
       self.userList.grid(row = 0, column = 1, sticky = N)
-      # frame.grid()
+
+
+   def sendMessage(self, event):
+      self.input.delete("1.0", END)
 
 
    def onListSelect(self, event):
-      for property, value in vars(event).iteritems():
-         print property, ": ", value
+      print "new selection"
+      # for property, value in vars(event).iteritems():
+      #    print property, ": ", value
 
    def aboutBox(self):
       pass
