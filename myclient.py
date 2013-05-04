@@ -62,7 +62,6 @@ class ClientGUI(Client):
       # master.config(width = 720, height = 526)
       # master.grid_propagate(False)  # doesn't change size because of inner elements
 
-
       result = InitialDialog(master, "Connection settings").result
       if not result:
          self.onExit()
@@ -93,7 +92,7 @@ class ClientGUI(Client):
                               size = 10))
       menu.add_command(label = "                                         ",\
                        state = DISABLED)
-      menu.add_command(label = "Connected users                     ",\
+      menu.add_command(label = "          Connected users           ",\
                        state = DISABLED, background = "gray", \
                        font = tkFont.Font(family = "Times", weight = tkFont.BOLD, \
                                           size = 10))
@@ -119,17 +118,20 @@ class ClientGUI(Client):
       text.focus_set()
       self.input = text
 
+      # add a label to state errors and warnings
+      self.infoLabel = StringVar(value = "Registered successfully...")
+      label = Label(master, textvariable = self.infoLabel, anchor = W, fg = "#555")
 
-
+      label.grid(row = 2, column = 0, columnspan = 2, sticky = W)
       self.display.grid(row = 0, column = 0, sticky = N)
       self.input.grid(row = 1, column = 0)
-      self.userList.grid(row = 0, column = 1, sticky = N)
+      self.userList.grid(row = 0, column = 1, rowspan = 2, sticky = N + S)
       self.send("REG " + self.name)          # register the user
       self.populateList()
 
 
    def sendMessage(self, event):
-      """ sends the stripped verstion of the input to the server"""
+      """ sends the stripped version of the input to the server"""
       message = self.input.get("1.0", END).strip()
       if message:                            # don't send empty messages
          self.send("MSG :" + message)
@@ -175,16 +177,16 @@ class ClientGUI(Client):
          self.display.insert(END, ' ' + msg + '\n')
          self.display["state"] = DISABLED
 
-         pos = self.display.vbar.get()[1]
+         pos = self.display.vbar.get()[1]             # current scrollbar position
          if pos == 1.0:
-            self.display.yview(END)
+            self.display.yview(END)                   # autoscroll if at end
 
 
       elif command == "USR":                          # update users list
          self.connectedUsers.set(args)
 
-
-
+      elif command == "ERR":
+         self.infoLabel.set("Error " + args)
 
       return True
 
