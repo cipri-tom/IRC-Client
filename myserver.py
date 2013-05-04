@@ -9,6 +9,13 @@ class MyServer(Server):
       self.users = {}
       self.illegalChars = [' ', ':', ',', ';', ' ']
       self.commands = "REG MSG USR".split();
+      self.errorMsg = {
+         010 : "Illegal username",
+         012 : "Username already exists",
+         401 : "Unauthorized",
+         400 : "Bad request",
+         501 : "Not implemented"
+      }
 
    def onStop(self):
       print "MyServer has stopped..."
@@ -19,6 +26,8 @@ class MyServer(Server):
       print "A new client has connected. Total connected clients:", \
             self.clientsNo
 
+   def sendError(self, socket, errNo):
+      socket.send("ERR %s: %s" % (str(errNo), self.errorMsg[errNo]))
 
    def onMessage(self, socket, message):
       #print "A new message has been received..."
@@ -27,18 +36,18 @@ class MyServer(Server):
 
       #validate the command
       if not command in self.commands:
-         socket.send("ERR 501")
+         self.sendError(socket, 501)
       elif args == '':
-         socket.send("ERR 400")
+         self.sendError(socket, 400)
 
       elif command == "REG":
          #validate the username
          if any(char in args for char in self.illegalChars):
-            socket.send("ERR 010");
+            self.sendError(socket, 010)
 
          #verify for duplicates
          elif args in self.users.keys():
-            socket.send("ERR 012")
+            self.sendError(socket, 012)
 
          #already registered, change previous value
          elif socket.name != "":
@@ -60,7 +69,7 @@ class MyServer(Server):
 
       #user has not registered yet
       elif not socket in self.users.values():
-         socket.send("ERR 401")
+         self.sendError(socket, 401)
 
       elif command == "MSG":
          (destinations, sep, msg) = args.strip().partition(':')
@@ -96,7 +105,7 @@ class MyServer(Server):
          if args == ',':
             socket.send("USR " + ' '.join(self.users.keys()))
          else:
-            socket.send("ERR 501")
+            self.sendError(socket, 501)
 
       return True
 
