@@ -8,6 +8,7 @@ import sys
 from ex3utils import Client
 from Tkinter import *
 import tkMessageBox
+from ScrolledText import ScrolledText
 import mydialog
 import tkFont
 
@@ -94,10 +95,15 @@ class ClientGUI(Client):
 
       # frame for connected users
       self.userList = Listbox(master)
+      self.userList.grid(row = 0, column = 1, sticky = "NEWS")
+      self.userList.bind('<<ListboxSelect>>', self.onSelect)
       self.userList.insert(END, "defaultUser")
       self.userList.insert(END, self.name)
-      self.userList.grid(row = 0, column = 0)
-      self.userList.bind('<<ListboxSelect>>', self.onSelect)
+
+      #add the text display
+      text = ScrolledText(master, state = DISABLED)
+      text.insert
+      text.grid(row = 0, column = 0, sticky = "NEWS")
 
    def onSelect(self, event):
       for property, value in vars(event).iteritems():

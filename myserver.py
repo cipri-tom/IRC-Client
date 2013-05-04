@@ -2,29 +2,29 @@ import sys
 from ex3utils import Server
 
 class MyServer(Server):
-   
+
    def onStart(self):
       print "MyServer has started..."
       self.clientsNo = 0
       self.users = {}
       self.illegalChars = [' ', ':', ',', ';']
       self.commands = "REG MSG USR".split();
-   
+
    def onStop(self):
       print "MyServer has stopped..."
-   
+
    def onConnect(self, socket):
       self.clientsNo += 1
       socket.name = ''
       print "A new client has connected. Total connected clients:", \
             self.clientsNo
-      
-   
+
+
    def onMessage(self, socket, message):
       #print "A new message has been received..."
       (command, sep, args) = message.strip().partition(' ')
       command = command.upper()
-      
+
       #validate the command
       if not command in self.commands:
          socket.send("ERR 501")
@@ -56,7 +56,7 @@ class MyServer(Server):
             self.users[args] = socket
             for user in self.users.values():
                user.send("MSG :User " + args + " has connected.")
-      
+
       #user has not registered yet
       elif not socket in self.users.values():
          socket.send("ERR 401")
@@ -96,9 +96,9 @@ class MyServer(Server):
             socket.send("USR " + ','.join(self.users.keys()))
          else:
             socket.send("ERR 501")
-      
+
       return True
-   
+
    def onDisconnect(self, socket):
       self.clientsNo -= 1
       if socket in self.users.values():
@@ -106,7 +106,13 @@ class MyServer(Server):
       print "A client has disconnected. Total connected clients:", \
             self.clientsNo
 
-      
+
+if len(sys.argv) != 3:
+   print "Not enough arguments ..."
+   print "Usage: python myserver.py ip port"
+   exit()
+
+
 ip = sys.argv[1]
 port = int(sys.argv[2])
 
