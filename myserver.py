@@ -7,7 +7,7 @@ class MyServer(Server):
       print "MyServer has started..."
       self.clientsNo = 0
       self.users = {}
-      self.illegalChars = [' ', ':', ',', ';']
+      self.illegalChars = [' ', ':', ',', ';', ' ']
       self.commands = "REG MSG USR".split();
 
    def onStop(self):
