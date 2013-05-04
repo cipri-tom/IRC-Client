@@ -109,13 +109,14 @@ class ClientGUI(Client):
 
       # add widget for displaying incoming text
       text = ScrolledText(master, height = 20, width = 75, state = DISABLED)
-      text.tag_config("a", background = "gray")       # set a tag for the author
-      text.focus_set()
+      text.tag_config("a", background = "lightgray")        # set a tag for the author
+      text.tag_config('s', background = "darkgray")         # set a tag for the server
       self.display = text
 
       # add the text input
       text = ScrolledText(master, height = 5, width = 75)
       text.bind('<KeyRelease-Return>', self.sendMessage)
+      text.focus_set()
       self.input = text
 
 
@@ -160,10 +161,14 @@ class ClientGUI(Client):
 
       if command == "MSG":
          (author, sep, msg) = args.partition(':')     # get the author, msg
+         tag = ''
          if not author:
             author = "SERVER"
+            tag = 's'
+         elif author == self.name:
+            tag = 'a'
          self.display["state"] = NORMAL;
-         self.display.insert(END, author + ":", 'a')
+         self.display.insert(END, author + ":", tag)
          self.display.insert(END, ' ' + msg + '\n')
          self.display["state"] = DISABLED
 
@@ -181,26 +186,3 @@ try:
 except:
    root.destroy()
    raise
-
-
-"""
-# Create an IRC client.
-client = IRCClient()
-
-# Start server
-client.start(ip, port)
-
-# *** register your client here, e.g. ***
-client.send('REG %s' % screenName)
-
-while client.isRunning():
-   try:
-      command = raw_input("> ").strip()
-      # *** process input from the user in a loop here ***
-      # *** use client.send(someMessage) to send messages to the server
-   except:
-      client.stop();
-
-client.stop()
-"""
-
