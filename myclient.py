@@ -41,7 +41,7 @@ class InitialDialog(mydialog.Dialog):
       if not self._username.get() or not self._server.get() or not self._port.get():
          self._error.set("Please fill all fields")
          return False
-      illegalChars = [' ', ':', ',', ';']
+      illegalChars = [' ', ':', ',', ';', ' ']
       if any(char in self._username.get() for char in illegalChars):
          self._error.set("Illegal characters in username")
          return False
@@ -100,13 +100,17 @@ class ClientGUI(Client):
       self.menu = menu
 
       # list of connected users
-      self.userList = Listbox(master, height = 15, width = 21, selectmode = MULTIPLE)
+      self.connectedUsers = StringVar()         # used to update the userList
+      self.userList = Listbox(master, height = 15, width = 21, selectmode = MULTIPLE, \
+                              listvariable = self.connectedUsers)
       self.userList.bind('<<ListboxSelect>>', self.onListSelect)
-      self.userList.insert(END, "defaultUser")
-      self.userList.insert(END, self.name)
+      self.connectedUsers.set("default_user\n" + self.name)
+      self.populateList()
 
       # add widget for displaying incoming text
       text = ScrolledText(master, height = 20, width = 75, state = DISABLED)
+      text.tag_config("a", background = "gray")       # set a tag for the author
+      text.focus_set()
       self.display = text
 
       # add the text input
@@ -114,15 +118,23 @@ class ClientGUI(Client):
       text.bind('<KeyRelease-Return>', self.sendMessage)
       self.input = text
 
-      # add a button for
+
 
       self.display.grid(row = 0, column = 0, sticky = N)
       self.input.grid(row = 1, column = 0)
       self.userList.grid(row = 0, column = 1, sticky = N)
+      self.send("REG " + self.name)          # register the user
 
 
    def sendMessage(self, event):
+      message = self.input.get("1.0", END).strip()
+      self.send("MSG :" + message)
       self.input.delete("1.0", END)
+
+   def populateList(self):
+      """ makes a users request to the server (USR command), after which the
+      variable assoctiated with the userList is updated in onMessage() """
+      pass
 
 
    def onListSelect(self, event):
@@ -138,8 +150,23 @@ class ClientGUI(Client):
 
 
    def onMessage(self, socket, message):
-      # *** process incoming messages here ***
-      print message
+      """ the method processes the incoming messages from the server;
+      depending on the command, it updates the required widget """
+
+      ##### SHOULD CHECK MESSAGES VALIDITY OR TRUST THE SERVER? #####
+      ##### Trust the server for now
+
+      (command, sep, args) = message.partition(' ')
+
+      if command == "MSG":
+         (author, sep, msg) = args.partition(':')     # get the author, msg
+         if not author:
+            author = "SERVER"
+         self.display["state"] = NORMAL;
+         self.display.insert(END, author + ":", 'a')
+         self.display.insert(END, ' ' + msg + '\n')
+         self.display["state"] = DISABLED
+
       return True
 
    def onExit(self):
