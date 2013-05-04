@@ -104,8 +104,7 @@ class ClientGUI(Client):
       self.userList = Listbox(master, height = 15, width = 21, selectmode = MULTIPLE, \
                               listvariable = self.connectedUsers)
       self.userList.bind('<<ListboxSelect>>', self.onListSelect)
-      self.connectedUsers.set("default_user\n" + self.name)
-      self.populateList()
+      # self.connectedUsers.set("default_user\n" + self.name)
 
       # add widget for displaying incoming text
       text = ScrolledText(master, height = 20, width = 75, state = DISABLED)
@@ -125,9 +124,11 @@ class ClientGUI(Client):
       self.input.grid(row = 1, column = 0)
       self.userList.grid(row = 0, column = 1, sticky = N)
       self.send("REG " + self.name)          # register the user
+      self.populateList()
 
 
    def sendMessage(self, event):
+      """ sends the stripped verstion of the input to the server"""
       message = self.input.get("1.0", END).strip()
       if message:                            # don't send empty messages
          self.send("MSG :" + message)
@@ -135,8 +136,8 @@ class ClientGUI(Client):
 
    def populateList(self):
       """ makes a users request to the server (USR command), after which the
-      variable assoctiated with the userList is updated in onMessage() """
-      pass
+      variable associated with the userList is updated in onMessage() """
+      self.send("USR ,")
 
 
    def onListSelect(self, event):
@@ -159,19 +160,26 @@ class ClientGUI(Client):
       ##### Trust the server for now
 
       (command, sep, args) = message.partition(' ')
+      print command, args
 
-      if command == "MSG":
+      if command == "MSG":                            # show the message
          (author, sep, msg) = args.partition(':')     # get the author, msg
          tag = ''
-         if not author:
+         if not author:                               # empty author means SERVER
             author = "SERVER"
             tag = 's'
-         elif author == self.name:
+         elif author == self.name:                    # highlight your name
             tag = 'a'
-         self.display["state"] = NORMAL;
+         self.display["state"] = NORMAL;              # insert doesn't work if DISABLED
          self.display.insert(END, author + ":", tag)
          self.display.insert(END, ' ' + msg + '\n')
          self.display["state"] = DISABLED
+
+      elif command == "USR":                          # update users list
+         self.connectedUsers.set(args)
+
+
+
 
       return True
 

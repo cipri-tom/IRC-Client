@@ -56,6 +56,7 @@ class MyServer(Server):
             self.users[args] = socket
             for user in self.users.values():
                user.send("MSG :User " + args + " has connected.")
+               user.send("USR " + ' '.join(self.users.keys()))
 
       #user has not registered yet
       elif not socket in self.users.values():
@@ -93,7 +94,7 @@ class MyServer(Server):
       elif command == "USR":
          #no argument, send the whole list
          if args == ',':
-            socket.send("USR " + ','.join(self.users.keys()))
+            socket.send("USR " + ' '.join(self.users.keys()))
          else:
             socket.send("ERR 501")
 
@@ -103,8 +104,9 @@ class MyServer(Server):
       self.clientsNo -= 1
       if socket in self.users.values():
          del self.users[socket.name]
-      print "A client has disconnected. Total connected clients:", \
-            self.clientsNo
+      for user in self.users.values():
+         user.send("MSG :User %s has left the conversation..." % socket.name)
+         user.send("USR " + ' '.join(self.users.keys()))
 
 
 if len(sys.argv) != 3:
